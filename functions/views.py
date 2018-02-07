@@ -3,7 +3,7 @@ from django.http import HttpResponseRedirect, HttpResponse, FileResponse
 import os
 from django.utils import timezone
 from main import models
-from mypro import ifile
+from mypro import ifile, ishadow
 # Create your views here.
 
 def functions(request):
@@ -20,10 +20,46 @@ def dm(request):
 			this_Number = models.Number.objects.get(id=this_Number_id)
 			this_file_path = this_Number.file
 			data = ifile.openfile(this_file_path)
-			dbget = write_to_db(data, this_Number_id)
+			dbget = write_to_pldb(data, this_Number_id)
 			if dbget == 0:
 				return HttpResponse('error')
 			else:
+				Line_data = models.Dmline.objects.filter(num_id=this_Number_id)
+				Point_data = models.Point.objects.filter(num_id=this_Number_id)
+				num_l = len(Line_data)
+				num_p = len(Point_data)
+
+				a = models.Dmline.objects.all().values_list('id')
+				print(a)
+				
+				i = 0
+				pl_list = []
+				
+				while i < num_l:
+					p1 = [Line_data[i].y1, Line_data[i].x1]
+					p2 = [Line_data[i].y2, Line_data[i].x2]
+					j = 0
+					while j < num_p:
+						p = [Point_data[j].y, Point_data[j].x]
+						xy = ishadow.shadow(p, p1, p2)
+						if xy == []:
+							j+=1
+						else:
+							point_id = Point_data[j].id
+							line_id = Line_data[i].id
+							d = ishadow.ptl(p, p1, p2)
+							h = Point_data[j].h
+							d0 = ishadow.ptp(xy, p1)
+							num_id = this_Number_id
+							pl_list.append(models.PointLine(point_id=point_id, line_id=line_id,
+								d=d, y=xy[0], x=xy[1], h=h, d0=d0, num_id=num_id))
+							j+=1
+					i+=1
+				models.PointLine.objects.bulk_create(pl_list)	
+				
+					#is or not
+					#threshold
+					
 
 
 
@@ -71,7 +107,7 @@ def download_file(ff):
 
     return response
 
-def write_to_db(data,this_Number_id):
+def write_to_pldb(data,this_Number_id):
 	num = len(data)
 	i = 0
 	pl_list = []

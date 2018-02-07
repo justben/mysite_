@@ -23,3 +23,23 @@ class Point(models.Model):
 	x = models.FloatField()
 	h = models.FloatField()
 	num = models.ForeignKey(Number, on_delete=models.CASCADE, )
+
+class PointLine(models.Model):
+	point_id = models.IntegerField()
+	line_id = models.IntegerField()
+	d = models.FloatField()
+	y = models.FloatField()
+	x = models.FloatField()
+	h = models.FloatField()
+	d0 = models.FloatField()
+	num = models.ForeignKey(Number, on_delete=models.CASCADE, )
+
+class LinePoint(models.Model):
+	line_id = models.IntegerField()
+	point_id = models.IntegerField()
+	d1 = models.FloatField()
+	h = models.FloatField()
+	num = models.ForeignKey(Number, on_delete=models.CASCADE, )
+
+
+
